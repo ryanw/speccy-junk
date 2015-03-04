@@ -8,12 +8,14 @@ loop:
   push bc
 
   ld b, 31
+  call pixel_address
   inner_loop:
     push bc
 
     call draw_pixel
     call inc_x
 
+    inc de ; increment pixel
     pop bc
     djnz inner_loop
 
@@ -50,13 +52,11 @@ inc_y:
 
 
 draw_pixel:
-  call pixel_address
-
   ; Copy character to accumulator
   ld a, (de)
 
   ; Write pixels to accumulator
-  or %11111111
+  xor %11111111
 
   ; Copy updated char back to screen
   ld (de), a
@@ -92,6 +92,24 @@ done:
 pos_x: defb 0
 pos_y: defb 0
 
+
+sprite_1:
+  defw %0100010100010100
+  defw %0111111111111110
+  defw %1000000000000001
+  defw %0011100000011100
+  defw %0111110000111110
+  defw %0011100000011100
+  defw %0000000000000000
+  defw %0000000100000000
+  defw %0000001110000000
+  defw %0000011111000000
+  defw %0000001110000000
+  defw %0000000000000000
+  defw %0011100000011100
+  defw %0001000000001000
+  defw %0000111111110000
+  defw %0000000000000000
 
 
 row_offsets:
