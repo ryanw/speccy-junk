@@ -1,57 +1,39 @@
 org 0x8000
 
+pos_x: defb 0
+pos_y: defb 0
+
+
 main:
-  ld b, 192
-
-
-loop:
-  push bc
-
-  ld b, 31
-  call pixel_address
-  inner_loop:
-    push bc
-
-    call draw_pixel
-    call inc_x
-
-    inc de ; increment pixel
-    pop bc
-    djnz inner_loop
-
-  call reset_x
-  call inc_y
-
-  pop bc
-  djnz loop
-  jp done
-
-reset_x:
-  ld a, 0
+  ;call clear_screen
+  ; Sprite X
+  ld a, 32
   ld (pos_x), a
-  ret
-
-reset_y:
-  ld a, 0
+  ; Sprite Y
+  ld a, 32
   ld (pos_y), a
+
+  call draw_char
+  ret
+  ;ld b, 192
+
+
+; Draw black square at pos_x/pos_y
+draw_char:
+  call pixel_address
+  ; draw all 8 rows
+  ld b, 8
+  draw_char_loop:
+    call draw_pixels
+    ld a, d
+    add a, 1
+    ld d, a
+    djnz draw_char_loop
+
   ret
 
-inc_x:
-  ld hl, (pos_x)
-  ld bc, 8
-  add hl, bc
-  ld (pos_x), hl
-  ret
 
-inc_y:
-  ld hl, (pos_y)
-  ld bc, 1
-  add hl, bc
-  ld (pos_y), hl
-  ret
-
-
-draw_pixel:
+draw_pixels:
   ; Copy character to accumulator
   ld a, (de)
 
@@ -64,6 +46,7 @@ draw_pixel:
   ret
 
 
+; Read pixel coord from pos_x/pos_y and store address in (de)
 pixel_address:
   xor a               ; clear carry flag and accumulator.
   ld d,a              ; empty de high byte.
@@ -85,12 +68,20 @@ pixel_address:
   ld e,a              ; new value of e register.
   ret                 ; return with screen address in de.
 
+clear_screen:
+  ld hl, 0x4000 ; Start of screen
+  ld de, 0x4001
+  ld bc, 0x1800 ; Size of screen
+  ld (hl), 0
+  ldir
+  ld bc, 0x02ff
+  ld (hl), a
+  ldir
+  ret
+
 done:
   ret
 
-
-pos_x: defb 0
-pos_y: defb 0
 
 
 sprite_1:
@@ -305,4 +296,51 @@ row_offsets:
   defw 21984
   defw 22240
   defw 22496
+
+loop:
+  push bc
+
+  ld b, 31
+  call pixel_address
+  inner_loop:
+    push bc
+
+    call draw_pixels
+    call inc_x
+
+    inc de ; increment pixel
+    pop bc
+    djnz inner_loop
+
+  call reset_x
+  call inc_y
+
+  pop bc
+  djnz loop
+  jp done
+
+reset_x:
+  ld a, 0
+  ld (pos_x), a
+  ret
+
+reset_y:
+  ld a, 0
+  ld (pos_y), a
+  ret
+
+inc_x:
+  ld hl, (pos_x)
+  ld bc, 8
+  add hl, bc
+  ld (pos_x), hl
+  ret
+
+inc_y:
+  ld hl, (pos_y)
+  ld bc, 1
+  add hl, bc
+  ld (pos_y), hl
+  ret
+
 
