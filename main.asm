@@ -5,46 +5,49 @@ pos_y: defb 0
 
 
 main:
-  ;call clear_screen
+  call clear_screen
   ; Sprite X
-  ld a, 32
+  ld a, 4
   ld (pos_x), a
   ; Sprite Y
-  ld a, 32
+  ld a, 5
   ld (pos_y), a
 
   call draw_char
-  ret
-  ;ld b, 192
+ret
 
-
-; Draw black square at pos_x/pos_y
+; Draw Sprite!
 draw_char:
+  push bc
   call pixel_address
+  ; Pixel address is now in DE
+
+  ld hl, sprite_1
   ; draw all 8 rows
-  ld b, 8
+  ld b, 16
   draw_char_loop:
-    call draw_pixels
-    ld a, d
-    add a, 1
-    ld d, a
+    ;call draw_pixels
+
+    ; source is HL
+    ; dest is DE
+    ld a, (de)
+    xor (hl)
+    ld (de), a
+
+    inc hl
+    inc de
+    ld a, (de)
+    xor (hl)
+    ld (de), a
+
+    dec de
+    inc hl
+    inc d
+
     djnz draw_char_loop
 
+  pop bc
   ret
-
-
-draw_pixels:
-  ; Copy character to accumulator
-  ld a, (de)
-
-  ; Write pixels to accumulator
-  xor %11111111
-
-  ; Copy updated char back to screen
-  ld (de), a
-
-  ret
-
 
 ; Read pixel coord from pos_x/pos_y and store address in (de)
 pixel_address:
@@ -69,12 +72,16 @@ pixel_address:
   ret                 ; return with screen address in de.
 
 clear_screen:
-  ld hl, 0x4000 ; Start of screen
-  ld de, 0x4001
-  ld bc, 0x1800 ; Size of screen
-  ld (hl), 0
-  ldir
-  ld bc, 0x02ff
+  ; Clear pixels
+  ld hl, 0x4000 ; Copy first screen byte...
+  ld de, 0x4001 ; ... into next screen byte
+  ld bc, 0x17FF ; ... for length of pixel memory
+  ld (hl), 0  ; Manually clear first screen byte
+  ldir  ; Do the copy
+
+  ; Clear attributes/colours
+  ld a, %000111 ; Colour to clear with
+  ld bc, 0x02ff  ; Size of attribute memory
   ld (hl), a
   ldir
   ret
@@ -82,25 +89,44 @@ clear_screen:
 done:
   ret
 
+random:
+  ld hl,(seed)        ; Pointer
+  ld a,h
+  and 31              ; keep it within first 8k of ROM.
+  ld h,a
+  ld a,(hl)           ; Get "random" number from location.
+  inc hl              ; Increment pointer.
+  ld (seed),hl
+  ret
+seed: defw 0
 
+sprite_2:
+  defb %00000111
+  defb %00011000
+  defb %00100000
+  defb %01001110
+  defb %01011111
+  defb %10011111
+  defb %10001110
+  defb %10000000
 
 sprite_1:
-  defw %0100010100010100
-  defw %0111111111111110
-  defw %1000000000000001
-  defw %0011100000011100
-  defw %0111110000111110
-  defw %0011100000011100
-  defw %0000000000000000
-  defw %0000000100000000
-  defw %0000001110000000
-  defw %0000011111000000
-  defw %0000001110000000
-  defw %0000000000000000
-  defw %0011100000011100
-  defw %0001000000001000
-  defw %0000111111110000
-  defw %0000000000000000
+  defb %00000111, %11100000
+  defb %00011000, %00011000
+  defb %00100000, %00000100
+  defb %01001110, %00000010
+  defb %01011111, %00000010
+  defb %10011111, %00000001
+  defb %10001110, %00000001
+  defb %10000000, %00000001
+  defb %10000000, %00000001
+  defb %10000000, %00000001
+  defb %10000000, %00011001
+  defb %01000000, %00111010
+  defb %01000000, %00110010
+  defb %00100000, %00000100
+  defb %00011000, %00011000
+  defb %00000111, %11100000
 
 
 row_offsets:
@@ -296,51 +322,4 @@ row_offsets:
   defw 21984
   defw 22240
   defw 22496
-
-loop:
-  push bc
-
-  ld b, 31
-  call pixel_address
-  inner_loop:
-    push bc
-
-    call draw_pixels
-    call inc_x
-
-    inc de ; increment pixel
-    pop bc
-    djnz inner_loop
-
-  call reset_x
-  call inc_y
-
-  pop bc
-  djnz loop
-  jp done
-
-reset_x:
-  ld a, 0
-  ld (pos_x), a
-  ret
-
-reset_y:
-  ld a, 0
-  ld (pos_y), a
-  ret
-
-inc_x:
-  ld hl, (pos_x)
-  ld bc, 8
-  add hl, bc
-  ld (pos_x), hl
-  ret
-
-inc_y:
-  ld hl, (pos_y)
-  ld bc, 1
-  add hl, bc
-  ld (pos_y), hl
-  ret
-
 
