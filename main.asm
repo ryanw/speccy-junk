@@ -72,6 +72,10 @@ pixel_address:
   ret                 ; return with screen address in de.
 
 clear_screen:
+  ; Set borders to black
+  ld a, 0
+  call 0x229B
+
   ; Clear pixels
   ld hl, 0x4000 ; Copy first screen byte...
   ld de, 0x4001 ; ... into next screen byte
