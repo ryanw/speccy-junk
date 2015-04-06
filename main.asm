@@ -135,7 +135,7 @@ clear_screen:
   ; Clear pixels
   ld hl, 0x4000 ; Copy first screen byte...
   ld de, 0x4001 ; ... into next screen byte
-  ld bc, 0x17FF ; ... for length of pixel memory
+  ld bc, 0x1800 ; ... for length of pixel memory
   ld (hl), 0  ; Manually clear first screen byte
   ldir  ; Do the copy
 
