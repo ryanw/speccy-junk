@@ -61,6 +61,13 @@ draw_char:
     ld a, (tmp_0)
     inc a
     ld (tmp_0), a
+
+    ; Moving into a new segment
+    and 63
+    jr z, draw_char_next_segment
+
+    ; Moving into a new char row
+    ;ld a, (tmp_0)
     and 7
     jr z, draw_char_next_row
 
@@ -74,7 +81,16 @@ draw_char_done:
   ret
 
 draw_char_next_segment:
+  ex de, hl
+  push de
+  ld de, 32
+  ;inc e
+  add hl, de
+
+  pop de
+  ex de, hl
   djnz draw_char_loop
+  jr draw_char_done
 
 draw_char_next_row:
   ex de, hl
