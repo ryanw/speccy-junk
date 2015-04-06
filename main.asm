@@ -2,19 +2,29 @@ org 0x8000
 
 pos_x: defb 0
 pos_y: defb 0
+tmp_0: defb 0
 
 
 main:
   call clear_screen
   ; Sprite X
-  ld a, 4
+  ld a, 64
   ld (pos_x), a
   ; Sprite Y
-  ld a, 5
+  ld a, 0
   ld (pos_y), a
 
+
   call draw_char
-ret
+  main_loop:
+    halt
+    call draw_char
+    ld a, (pos_y)
+    inc a
+    ld (pos_y), a
+    call draw_char
+    jr main_loop
+  ret
 
 ; Draw Sprite!
 draw_char:
@@ -22,11 +32,13 @@ draw_char:
   call pixel_address
   ; Pixel address is now in DE
 
+  ld a, (pos_y)
+  ld (tmp_0), a
+
   ld hl, sprite_1
   ; draw all 8 rows
   ld b, 16
   draw_char_loop:
-    ;call draw_pixels
 
     ; source is HL
     ; dest is DE
@@ -41,13 +53,41 @@ draw_char:
     ld (de), a
 
     dec de
+
+
     inc hl
+
+
+    ld a, (tmp_0)
+    inc a
+    ld (tmp_0), a
+    and 7
+    jr z, draw_char_next_row
+
     inc d
+
 
     djnz draw_char_loop
 
+draw_char_done:
   pop bc
   ret
+
+draw_char_next_segment:
+  djnz draw_char_loop
+
+draw_char_next_row:
+  ex de, hl
+  push de
+  ld de, -1760
+  ;inc e
+  add hl, de
+
+  pop de
+  ex de, hl
+  djnz draw_char_loop
+  jr draw_char_done
+
 
 ; Read pixel coord from pos_x/pos_y and store address in (de)
 pixel_address:
