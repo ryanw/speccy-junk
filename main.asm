@@ -16,6 +16,8 @@ main:
 
 
   call draw_char
+
+  ld b, 176
   main_loop:
     halt
     call draw_char
@@ -23,7 +25,7 @@ main:
     inc a
     ld (pos_y), a
     call draw_char
-    jr main_loop
+    djnz main_loop
   ret
 
 ; Draw Sprite!
@@ -35,7 +37,7 @@ draw_char:
   ld a, (pos_y)
   ld (tmp_0), a
 
-  ld hl, sprite_1
+  ld hl, sprite_2
   ; draw all 8 rows
   ld b, 16
   draw_char_loop:
@@ -129,8 +131,8 @@ pixel_address:
 
 clear_screen:
   ; Set borders to black
-  ld a, 0
-  call 0x229B
+  ;ld a, 0
+  ;call 0x229B
 
   ; Clear pixels
   ld hl, 0x4000 ; Copy first screen byte...
@@ -140,7 +142,7 @@ clear_screen:
   ldir  ; Do the copy
 
   ; Clear attributes/colours
-  ld a, %000111 ; Colour to clear with
+  ld a, %111000 ; Colour to clear with
   ld bc, 0x02ff  ; Size of attribute memory
   ld (hl), a
   ldir
@@ -160,16 +162,6 @@ random:
   ret
 seed: defw 0
 
-sprite_2:
-  defb %00000111
-  defb %00011000
-  defb %00100000
-  defb %01001110
-  defb %01011111
-  defb %10011111
-  defb %10001110
-  defb %10000000
-
 sprite_1:
   defb %00000111, %11100000
   defb %00011000, %00011000
@@ -187,6 +179,25 @@ sprite_1:
   defb %00100000, %00000100
   defb %00011000, %00011000
   defb %00000111, %11100000
+
+sprite_2:
+  defb %00011111, %11110000
+  defb %00100000, %00001000
+  defb %01000000, %00000100
+  defb %01000000, %00000100
+  defb %01000000, %00000100
+  defb %01000000, %00000100
+  defb %01011110, %11110100
+  defb %01001100, %01100100
+
+  defb %01000000, %00000100
+  defb %01000011, %10000100
+  defb %00100010, %10001000
+  defb %00010000, %00010000
+  defb %00010101, %01010000
+  defb %00010101, %01010000
+  defb %00001000, %00100000
+  defb %00000111, %11000000
 
 
 row_offsets:
