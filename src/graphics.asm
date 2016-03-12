@@ -1,3 +1,5 @@
+include "map.asm"
+
 clear_screen:
 
   ; Clear pixel memory
@@ -8,13 +10,13 @@ clear_screen:
   ldir
 
   ; Clear colour attribs
-  ld a, FG_YELLOW ^ BG_BLUE
+  ld a, FG_PINK ^ BG_BLACK ^ BRIGHT
   ld bc, COLOURS_LEN
   ld (hl), a
   ldir
 
   ; Set border
-  ld a, FG_BLUE
+  ld a, FG_BLACK
   call SET_BORDER
 
   ret
@@ -71,9 +73,31 @@ draw_cell:
   call set_cell_address
   ; 8 loops
   ld b, 8
+  push hl
+  push de
   call draw_cell_row
+  pop de
+  pop hl
+
+  call draw_again
+  call draw_again
+  call draw_again
+  call draw_again
+
   pop bc
   ret
+
+draw_again:
+  inc hl
+  ld b, 8
+  push hl
+  push de
+  call draw_cell_row
+  pop de
+  pop hl
+  ret
+
+
 
 ; DE is pointing to first byte of the sprite's pixels
 ; HL is pointing to destination in framebuffer
